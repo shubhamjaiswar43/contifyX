@@ -1,0 +1,30 @@
+<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle -->
+  <circle cx="100" cy="100" r="90" fill="#2563eb" />
+  
+  <!-- Inner ring -->
+  <circle cx="100" cy="100" r="75" fill="#1e40af" stroke="#bfdbfe" stroke-width="2" />
+  
+  <!-- Central element - stylized "C" -->
+  <path d="M100 45 
+           C70 45, 45 70, 45 100
+           C45 130, 70 155, 100 155
+           C130 155, 155 130, 155 100" 
+        fill="none" stroke="#ffffff" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" />
+  
+  <!-- Notification dot -->
+  <circle cx="155" cy="60" r="15" fill="#ef4444" />
+  
+  <!-- Radar-like elements -->
+  <path d="M100 100 L160 70" stroke="#bfdbfe" stroke-width="3" stroke-linecap="round" />
+  <path d="M100 100 L70 150" stroke="#bfdbfe" stroke-width="3" stroke-linecap="round" />
+  <path d="M100 100 L50 80" stroke="#bfdbfe" stroke-width="3" stroke-linecap="round" />
+  
+  <!-- Data points -->
+  <circle cx="160" cy="70" r="5" fill="#f9fafb" />
+  <circle cx="70" cy="150" r="5" fill="#f9fafb" />
+  <circle cx="50" cy="80" r="5" fill="#f9fafb" />
+  
+  <!-- Central hub -->
+  <circle cx="100" cy="100" r="10" fill="#f9fafb" />
+</svg>
