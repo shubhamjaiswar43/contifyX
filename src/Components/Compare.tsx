@@ -141,8 +141,8 @@ const CompetitorComparison: React.FC = () => {
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
     const [activeTab, setActiveTab] = useState('performance');
-    const [username1, setUsername1] = useState('stayhappy');
-    const [username2, setUsername2] = useState('shubham_jaiswar_43');
+    const [username1, setUsername1] = useState('');
+    const [username2, setUsername2] = useState('');
     const [platform, setPlatform] = useState('codeforces');
     const [user1Stats, setUser1Stats] = useState<UserStats | null>(null);
     const [user2Stats, setUser2Stats] = useState<UserStats | null>(null);
