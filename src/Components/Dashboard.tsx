@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Loader } from 'lucide-react';
 import { useTheme } from '../Contexts/ThemeProvider';
 import { toast } from 'react-toastify';
 
@@ -74,6 +74,7 @@ interface Contest {
 // Utility function to format date
 const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat('en-IN', {
+        weekday: 'short',
         day: '2-digit',
         month: 'short',
         year: 'numeric',
@@ -88,6 +89,9 @@ const ContestDashboard: React.FC = () => {
     const { theme } = useTheme();
     const darkMode = (theme === 'dark');
     const cf_base_url = import.meta.env.VITE_APP_CF_BASE_URL;
+
+    // loading states
+    const [isLoading, setIsLoading] = useState<boolean>(true);
 
     // Dropdown states
     const [contestType, setContestType] = useState<'upcoming' | 'past'>('upcoming');
@@ -219,6 +223,7 @@ const ContestDashboard: React.FC = () => {
         return contests;
     };
     const fetchContestData = async () => {
+        setIsLoading(true);
         const contests: Array<Contest> = [];
         const codeforesContests: Array<Contest> = await getCodeforcesContests();
         const codechefContests: Array<Contest> = getCodechefContests();
@@ -228,6 +233,7 @@ const ContestDashboard: React.FC = () => {
         for (const contest of leetcodeContests) contests.push(contest);
         contests.sort((a, b) => b.startTime.getTime() - a.startTime.getTime());
         setContestInfo(contests);
+        setIsLoading(false);
     }
     useEffect(() => {
         fetchContestData();
@@ -306,45 +312,50 @@ const ContestDashboard: React.FC = () => {
 
                 {/* Contest Table */}
                 <div className="overflow-x-auto">
-                    <table className={`w-full border-collapse ${darkMode
-                        ? 'bg-gray-800 text-white'
-                        : 'bg-white text-gray-900'
-                        }`}>
-                        <thead>
-                            <tr className={`${darkMode
-                                ? 'bg-gray-700 border-gray-600'
-                                : 'bg-gray-200 border-gray-300'
-                                } border-b`}>
-                                <th className="p-3 text-left">Contest Name</th>
-                                <th className="p-3 text-left">Platform</th>
-                                <th className="p-3 text-left">Date & Time (IST)</th>
-                                <th className="p-3 text-left">Duration</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {currentContests.map((contest, index) => (
-                                <tr
-                                    key={index}
-                                    className={`border-b ${darkMode
-                                        ? 'border-gray-700 hover:bg-gray-700'
-                                        : 'border-gray-200 hover:bg-gray-100'
-                                        } transition-colors`}
-                                >
-                                    <td className="p-3">
-                                        <a target='_blank' className='hover:text-blue-400' href={contest.contestLink}>{contest.name}</a>
-                                    </td>
-                                    <td className="p-3">
-                                        <a target='_blank' className='hover:text-blue-400' href={contest.platformLink}>{contest.platform}</a>
-                                    </td>
-                                    <td className="p-3">{formatDate(contest.startTime)}</td>
-                                    <td className="p-3">{contest.length}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                    {
+                        isLoading ? <div className="flex justify-center items-center mt-4 overflow-hidden">
+                            <Loader className="animate-spin" />
+                        </div> :
+                            <table className={`w-full border-collapse ${darkMode
+                                ? 'bg-gray-800 text-white'
+                                : 'bg-white text-gray-900'
+                                }`}>
+                                <thead>
+                                    <tr className={`${darkMode
+                                        ? 'bg-gray-700 border-gray-600'
+                                        : 'bg-gray-200 border-gray-300'
+                                        } border-b`}>
+                                        <th className="p-3 text-left">Contest Name</th>
+                                        <th className="p-3 text-left">Platform</th>
+                                        <th className="p-3 text-left">Date & Time (IST)</th>
+                                        <th className="p-3 text-left">Duration</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {currentContests.map((contest, index) => (
+                                        <tr
+                                            key={index}
+                                            className={`border-b ${darkMode
+                                                ? 'border-gray-700 hover:bg-gray-700'
+                                                : 'border-gray-200 hover:bg-gray-100'
+                                                } transition-colors`}
+                                        >
+                                            <td className="p-3">
+                                                <a target='_blank' className='hover:text-blue-400' href={contest.contestLink}>{contest.name}</a>
+                                            </td>
+                                            <td className="p-3">
+                                                <a target='_blank' className='hover:text-blue-400' href={contest.platformLink}>{contest.platform}</a>
+                                            </td>
+                                            <td className="p-3">{formatDate(contest.startTime)}</td>
+                                            <td className="p-3">{contest.length}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                    }
 
                     {/* Pagination */}
-                    {filteredContests.length > 0 ? (
+                    {isLoading ? "" : filteredContests.length > 0 ? (
                         <div className="flex justify-center items-center mt-6 space-x-4">
                             <button
                                 onClick={() => handlePageChange(currentPage - 1)}

@@ -17,6 +17,7 @@ import {
     Award,
     ChevronDown,
     TrendingUp,
+    Loader,
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { getCFContestStatus, getCFSubmissionStatus, getCFUserInfo, getFormatTimeString } from './UserData';
@@ -86,9 +87,9 @@ const fetchUserStats = async (username: string, platform: string): Promise<UserS
         }
         acceptedMonths.reverse();
 
-        for (let rating = 800; rating <= 2500; rating += 100) {
-            ratingProblems[rating] = 0;
-        }
+        // for (let rating = 800; rating <= 2500; rating += 100) {
+        //     ratingProblems[rating] = 0;
+        // }
 
         for (const subs of submissions) {
             if (subs.verdict !== "OK") continue;
@@ -102,7 +103,10 @@ const fetchUserStats = async (username: string, platform: string): Promise<UserS
 
             // problemSolvedRatingWise
             let rating = subs.problem.rating;
-            if (rating) ratingProblems[rating]++;
+            if (rating) {
+                if (ratingProblems[rating]) { ratingProblems[rating]++; }
+                else { ratingProblems[rating] = 1; }
+            }
         }
 
         // contestRatingsInfo
@@ -134,6 +138,8 @@ const CompetitorComparison: React.FC = () => {
     const { theme } = useTheme();
     const isDark = theme === 'dark';
 
+    const [isLoading, setIsLoading] = useState<boolean>(false);
+
     const [activeTab, setActiveTab] = useState('performance');
     const [username1, setUsername1] = useState('stayhappy');
     const [username2, setUsername2] = useState('shubham_jaiswar_43');
@@ -154,6 +160,8 @@ const CompetitorComparison: React.FC = () => {
     ];
 
     const combineContestStats = (stats1: UserStats, stats2: UserStats) => {
+        console.log(stats1.contestRatings);
+        console.log(stats2.contestRatings);
         let idx1 = stats1.contestRatings.length - 1;
         let idx2 = stats2.contestRatings.length - 1;
         const cr1: Array<ContestRating> = [];
@@ -172,8 +180,11 @@ const CompetitorComparison: React.FC = () => {
             }
             // console.log(c1, c2);
             if (c1 === c2) {
-                cr1.push(stats1.contestRatings[idx1]);
-                cr2.push(stats2.contestRatings[idx2]);
+                const cn1 = stats1.contestRatings[idx1].contestName;
+                const cn2 = stats2.contestRatings[idx2].contestName;
+                const mergeContestName = cn1 === cn2 ? cn1 : `${cn1} / ${cn2}`;
+                cr1.push({ ...stats1.contestRatings[idx1], contestName: mergeContestName });
+                cr2.push({ ...stats2.contestRatings[idx2], contestName: mergeContestName });
                 idx1--, idx2--;
             } else if (c1 > c2) {
                 cr1.push(stats1.contestRatings[idx1]);
@@ -202,7 +213,7 @@ const CompetitorComparison: React.FC = () => {
             toast.error('Please enter usernames for both competitors');
             return;
         }
-
+        setIsLoading(true);
         try {
             const [stats1, stats2] = await Promise.all([
                 fetchUserStats(username1, platform),
@@ -214,6 +225,8 @@ const CompetitorComparison: React.FC = () => {
         } catch (err) {
             console.log(err);
             toast.error('Error fetching user statistics');
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -337,6 +350,7 @@ const CompetitorComparison: React.FC = () => {
         if (!user1Stats || !user2Stats) return null;
 
         return (
+
             <ResponsiveContainer width="100%" height="100%">
                 <BarChart
                     onClick={(data) => {
@@ -344,11 +358,20 @@ const CompetitorComparison: React.FC = () => {
                         const url = `https://codeforces.com/problemset?tags=${rating}-${rating}`;
                         window.open(url, '_blank');
                     }}
-                    data={user1Stats.problemSolvedByRating.map((item, index) => ({
-                        ratingRange: item.ratingRange,
-                        [username1]: item.problemsSolved,
-                        [username2]: user2Stats.problemSolvedByRating[index].problemsSolved
-                    }))}
+                    data={
+                        user1Stats.problemSolvedByRating.length > user2Stats.problemSolvedByRating.length ?
+                            user1Stats.problemSolvedByRating.map((item, index) => ({
+                                ratingRange: item.ratingRange,
+                                [username1]: item.problemsSolved,
+                                [username2]: user2Stats.problemSolvedByRating[index]?.problemsSolved
+                            }))
+                            :
+                            user2Stats.problemSolvedByRating.map((item, index) => ({
+                                ratingRange: item.ratingRange,
+                                [username1]: user1Stats.problemSolvedByRating[index]?.problemsSolved,
+                                [username2]: item.problemsSolved,
+                            }))
+                    }
                 >
                     <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#333' : '#e0e0e0'} />
                     <BarXAxis dataKey="ratingRange" />
@@ -405,7 +428,7 @@ const CompetitorComparison: React.FC = () => {
     };
 
     return (
-        <div className={`w-full h-screen flex flex-col p-6 ${isDark ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'}`}>
+        <div className={`w-full overflow-hidden h-screen flex flex-col p-6 ${isDark ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'}`}>
             {/* Header with input and compare button - same as before */}
             <div className="flex justify-between items-center mb-4">
                 <h1 className="text-3xl font-bold">Competitor Comparison</h1>
@@ -437,12 +460,14 @@ const CompetitorComparison: React.FC = () => {
                     </select>
                     <button
                         onClick={handleCompare}
-                        className={`p-2 rounded-lg w-24 ${isDark
+                        className={`p-2 rounded-lg w-24 cursor-pointer flex justify-center ${isDark
                             ? 'bg-purple-700 text-white hover:bg-purple-600'
                             : 'bg-purple-500 text-white hover:bg-purple-600'
                             }`}
                     >
-                        Compare
+                        {
+                            isLoading ? <Loader className='animate-spin' /> : 'Compare'
+                        }
                     </button>
                 </div>
             </div>
@@ -460,7 +485,7 @@ const CompetitorComparison: React.FC = () => {
                             key={tab.value}
                             onClick={() => setActiveTab(tab.value)}
                             className={`
-                                flex items-center px-4 py-2 mr-2
+                                flex items-center px-4 py-2 mr-2 cursor-pointer 
                                 ${activeTab === tab.value
                                     ? 'border-b-2 border-purple-500 text-purple-500'
                                     : 'text-gray-500 hover:text-gray-300'}
