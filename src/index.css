@@ -1,5 +1,6 @@
 @import "tailwindcss";
 
+
 /* For Webkit-based browsers (Chrome, Safari, Edge) */
 ::-webkit-scrollbar {
     width: 3px; /* Adjust the width to make the scrollbar thinner */

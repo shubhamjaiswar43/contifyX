@@ -5,6 +5,7 @@ import { ThemeProvider } from "./Contexts/ThemeProvider";
 import { ToastContainer } from "react-toastify";
 import Analysis from "./Components/Analysis";
 import Competitors from "./Components/Competitors";
+import Compare from "./Components/Compare";
 function App() {
   return (
     <>
@@ -33,6 +34,7 @@ function App() {
             <Route path="/compare" element={
               <>
                 <Navbar />
+                <Compare />
               </>
             } />
           </Routes>

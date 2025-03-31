@@ -5,7 +5,7 @@ import { useTheme } from '../Contexts/ThemeProvider';
 import UsernameInput from './UsernameInput';
 import { toast } from 'react-toastify';
 import { Usernames, NameValue, KeyStats, TimelyProblemSolvedData, ProgressData } from './Interface';
-import { getCodeforcesRating, getCodechefRating, getLeetcodeRating, getProblemSolvedCount, getLCTotalProblemSolved, getCFTotalACCount, getLCTotalACCount, getCCTotalACCount, getCFParticipatedContestCount, getLCParticipatedContestCount } from './UserData';
+import { getCFRating, getCCRating, getLCRating, getProblemSolvedCount, getLCTotalProblemSolved, getCFTotalACCount, getLCTotalACCount, getCCTotalACCount, getCFParticipatedContestCount, getLCParticipatedContestCount } from './UserData';
 import CustomTooltip from './CustomTooltip';
 
 const Analysis: React.FC = () => {
@@ -52,11 +52,11 @@ const Analysis: React.FC = () => {
             { platform: 'CodeChef', rating: 0, problemSolved: 0 },
             { platform: 'LeetCode', rating: 0, problemSolved: 0 },
         ];
-        rating[0].rating = await getCodeforcesRating(usernames?.codeforces);
+        rating[0].rating = await getCFRating(usernames?.codeforces);
         rating[0].problemSolved = await getCFTotalACCount(usernames?.codeforces);
-        rating[1].rating = await getCodechefRating(usernames?.codechef);
+        rating[1].rating = await getCCRating(usernames?.codechef);
         rating[1].problemSolved = await getCCTotalACCount(usernames?.codechef);
-        rating[2].rating = await getLeetcodeRating(usernames?.leetcode);
+        rating[2].rating = await getLCRating(usernames?.leetcode);
         rating[2].problemSolved = await getLCTotalACCount(usernames?.leetcode);
         setProgressData(rating);
     };

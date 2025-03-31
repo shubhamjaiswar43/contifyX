@@ -5,7 +5,7 @@ import { Usernames, CompetitorsInfo } from './Interface';
 import CustomTooltip from './CustomTooltip';
 import UsernameInput from './UsernameInput';
 import { FaEdit, FaTrash } from "react-icons/fa";
-import { getCodeforcesRating, getCodechefRating, getLeetcodeRating } from './UserData';
+import { getCFRating, getCCRating, getLCRating, getCFTotalACCount, getLCTotalACCount, getCFParticipatedContestCount, getLCParticipatedContestCount } from './UserData';
 
 const CompetitorsPage: React.FC = () => {
     const { theme } = useTheme();
@@ -65,9 +65,9 @@ const CompetitorsPage: React.FC = () => {
 
         const ratingPromises = competitors.map((competitor, index) => {
             return Promise.all([
-                getCodeforcesRating(competitor.codeforces),
-                getCodechefRating(competitor.codechef),
-                getLeetcodeRating(competitor.leetcode),
+                getCFRating(competitor.codeforces),
+                getCCRating(competitor.codechef),
+                getLCRating(competitor.leetcode),
             ]).then(([codeforcesRating, codechefRating, leetcodeRating]) => {
                 rD[0].values[index] = codeforcesRating;
                 rD[1].values[index] = codechefRating;
@@ -84,12 +84,70 @@ const CompetitorsPage: React.FC = () => {
     }, [competitors]);
 
     // problem solved info
+    const [problemSolvedData, setProblemSolvedData] = useState<Array<CompetitorsInfo>>([]);
+    const fetchCompetitorsProblemSolved = async () => {
+        const psD: Array<CompetitorsInfo> = [];
+        const platforms = ['codeforces', /*'codechef',*/ 'leetcode'];
+        for (const platform of platforms) {
+            const ratingInfo: CompetitorsInfo = { platform, values: [] };
+            psD.push(ratingInfo);
+        }
+
+        const problemSolvedPromises = competitors.map((competitor, index) => {
+            return Promise.all([
+                getCFTotalACCount(competitor.codeforces),
+                // getCCTotalACCount(competitor.codechef),
+                getLCTotalACCount(competitor.leetcode),
+            ]).then(([codeforcesRating, /*codechefRating,*/ leetcodeRating]) => {
+                psD[0].values[index] = codeforcesRating;
+                // psD[1].values[index] = codechefRating;
+                psD[1].values[index] = leetcodeRating;
+            });
+        });
+
+        await Promise.all(problemSolvedPromises);
+        setProblemSolvedData(psD);
+    };
+    const fetchCompetitorsProblemSolvedCB = useCallback(() => { fetchCompetitorsProblemSolved(); }, [competitors]);
+    useEffect(() => {
+        fetchCompetitorsProblemSolvedCB();
+    }, [competitors]);
+
+    // contest participated info
+    const [contestParticipatedData, setContestParticipatedData] = useState<Array<CompetitorsInfo>>([]);
+    const fetchCompetitorsContestParticipated = async () => {
+        const cpD: Array<CompetitorsInfo> = [];
+        const platforms = ['codeforces', /*'codechef',*/ 'leetcode'];
+        for (const platform of platforms) {
+            const ratingInfo: CompetitorsInfo = { platform, values: [] };
+            cpD.push(ratingInfo);
+        }
+
+        const problemSolvedPromises = competitors.map((competitor, index) => {
+            return Promise.all([
+                getCFParticipatedContestCount(competitor.codeforces),
+                // get(competitor.codechef),
+                getLCParticipatedContestCount(competitor.leetcode),
+            ]).then(([codeforcesRating, /*codechefRating,*/ leetcodeRating]) => {
+                cpD[0].values[index] = codeforcesRating;
+                // cpD[1].values[index] = codechefRating;
+                cpD[1].values[index] = leetcodeRating;
+            });
+        });
+
+        await Promise.all(problemSolvedPromises);
+        setContestParticipatedData(cpD);
+    };
+    const fetchCompetitorsContestParticipatedCB = useCallback(() => { fetchCompetitorsContestParticipated(); }, [competitors]);
+    useEffect(() => {
+        fetchCompetitorsContestParticipatedCB();
+    }, [competitors]);
 
     return (
         <div className={`p-6 ${isDark ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'}`}>
             <div className='flex justify-between'>
                 <h1 className="text-3xl font-bold mb-6">Competitors Tracking</h1>
-                <UsernameInput onSubmit={handleUsernameSubmit} />
+                <UsernameInput element={<p>Add Competitor</p>} onSubmit={handleUsernameSubmit} />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Competitors List */}
@@ -147,7 +205,7 @@ const CompetitorsPage: React.FC = () => {
                 <div className={`p-4 rounded-lg shadow-md ${isDark ? 'bg-gray-800' : 'bg-gray-100'}`}>
                     <h2 className="text-xl font-semibold mb-4">Platform Problem Solved Comparison</h2>
                     <ResponsiveContainer width="100%" height={300}>
-                        <BarChart data={ratingData}>
+                        <BarChart data={problemSolvedData}>
                             <CartesianGrid strokeDasharray="3 3" />
                             <XAxis dataKey="platform" />
                             <YAxis />
@@ -166,7 +224,7 @@ const CompetitorsPage: React.FC = () => {
                 <div className={`p-4 rounded-lg shadow-md ${isDark ? 'bg-gray-800' : 'bg-gray-100'}`}>
                     <h2 className="text-xl font-semibold mb-4">Platform Contest Participated Comparison</h2>
                     <ResponsiveContainer width="100%" height={300}>
-                        <BarChart data={ratingData}>
+                        <BarChart data={contestParticipatedData}>
                             <CartesianGrid strokeDasharray="3 3" />
                             <XAxis dataKey="platform" />
                             <YAxis />

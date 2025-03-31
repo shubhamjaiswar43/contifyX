@@ -6,25 +6,31 @@ const cf_base_url = import.meta.env.VITE_APP_CF_BASE_URL;
 const cc_base_url = import.meta.env.VITE_APP_CC_BASE_URL;
 const lc_base_url = import.meta.env.VITE_APP_LC_BASE_URL;
 
-export const getCodeforcesRating = async (username: string | undefined) => {
+export const getCFUserInfo = async (username: string) => {
+    const api = `${cf_base_url}/user.info?handles=${username.split(';')[0]}`
+    const r1 = await fetch(api);
+    const res = await r1.json();
+    if (res.status !== "OK") {
+        toast(res.comment);
+        return { username, rating: 0, maxRating: 0 };
+    }
+    return res.result[0];
+};
+
+export const getCFRating = async (username: string | undefined) => {
     if (!username || devRating) {
         return 0;
     }
     try {
-        const api = `${cf_base_url}/user.info?handles=${username.split(',')[0]}`
-        const r1 = await fetch(api);
-        const res = await r1.json();
-        if (res.status === "OK") {
-            return res.result[0].rating;
-        }
-        toast(res.comment);
+        const userInfo = await getCFUserInfo(username);
+        return userInfo.rating;
     } catch (err) {
         toast('Something Went Wrong!!');
         console.log(err);
     }
     return 0;
 };
-export const getCodechefRating = async (username: string | undefined) => {
+export const getCCRating = async (username: string | undefined) => {
     if (!username || devRating) {
         return 0;
     }
@@ -44,7 +50,7 @@ export const getCodechefRating = async (username: string | undefined) => {
     return 0;
 };
 
-export const getLeetcodeRating = async (username: string | undefined) => {
+export const getLCRating = async (username: string | undefined) => {
     if (!username || devRating) {
         return 0;
     }
@@ -61,7 +67,7 @@ export const getLeetcodeRating = async (username: string | undefined) => {
 };
 
 // takes timestamp (a number ms from 1970s)
-const getFormatString = (timestamp: number) => {
+export const getFormatTimeString = (timestamp: number) => {
     const months = [
         "Jan", "Feb", "Mar", "Apr", "May", "June", "July", "Aug", "Sept", "Oct", "Nov", "Dec"
     ];
@@ -71,23 +77,29 @@ const getFormatString = (timestamp: number) => {
     return `${month} ${year}`;
 };
 
+export const getCFSubmissionStatus = async (username: string, count: number) => {
+    const api = `${cf_base_url}/user.status?handle=${username}&from=1&count=${count}`
+    const r1 = await fetch(api);
+    const res = await r1.json();
+    if (res.status === "OK") {
+        return res.result;
+    } else {
+        toast(res.comment);
+    }
+    return [];
+};
+
 const getCFProblemSolvedCount = async (username: string, data: { [key: string]: number }) => {
     try {
-        const api = `${cf_base_url}/user.status?handle=${username}&from=1&count=10000`
-        const r1 = await fetch(api);
-        const res = await r1.json();
-        if (res.status === "OK") {
-            for (const subs of res.result) {
-                if (subs.verdict !== "OK") continue;
-                const time = getFormatString(subs.creationTimeSeconds * 1000);
-                if (data[time]) {
-                    data[time]++;
-                } else {
-                    data[time] = 1;
-                }
+        const submissions = await getCFSubmissionStatus(username, 10000);
+        for (const subs of submissions) {
+            if (subs.verdict !== "OK") continue;
+            const time = getFormatTimeString(subs.creationTimeSeconds * 1000);
+            if (data[time]) {
+                data[time]++;
+            } else {
+                data[time] = 1;
             }
-        } else {
-            toast(res.comment);
         }
     } catch (err) {
         console.log(err);
@@ -104,7 +116,7 @@ const getCCProblemSolvedCount = async (username: string, data: { [key: string]: 
         // const res = await r1.json();
         // if (res.success) {
         //     for (const solvedData of res.heatMap) {
-        //         const time = getFormatString(new Date(solvedData.date).getTime())
+        //         const time = getFormatTimeString(new Date(solvedData.date).getTime())
         //         if (data[time]) {
         //             data[time] += solvedData.value;
         //         } else {
@@ -126,7 +138,7 @@ const getLCProblemSolvedCount = async (username: string, data: { [key: string]: 
         // const res = await r1.json();
         // console.log(res);
         // for (const subs of res.submission) {
-        //     const time = getFormatString(subs.timestamp * 1000);
+        //     const time = getFormatTimeString(subs.timestamp * 1000);
         //     if (data[time]) {
         //         data[time]++;
         //     } else {
@@ -186,19 +198,13 @@ export const getCFTotalACCount = async (username: string | undefined) => {
     let cfTotalACCount = 0;
     if (username && username.length) {
         try {
-            const api = `${cf_base_url}/user.status?handle=${username.split(',')[0]}&from=1&count=1000000000`;
-            const r1 = await fetch(api);
-            const res = await r1.json();
-            if (res.status === "OK") {
-                let s = new Set();
-                for (const subs of res.result) {
-                    if (subs.verdict !== "OK") continue;
-                    s.add(`${subs.problem.contestId}${subs.problem.index}`);
-                }
-                cfTotalACCount = s.size;
-            } else {
-                toast(res.comment);
+            const submissions = await getCFSubmissionStatus(username, 1000000000);
+            let s = new Set();
+            for (const subs of submissions) {
+                if (subs.verdict !== "OK") continue;
+                s.add(`${subs.problem.contestId}${subs.problem.index}`);
             }
+            cfTotalACCount = s.size;
         } catch (err) {
             toast("Something Went Wrong");
             console.log(err);
@@ -221,23 +227,28 @@ export const getCCTotalACCount = async (username: string | undefined) => {
 }
 
 
+export const getCFContestStatus = async (username: string) => {
+    try {
+        const api = `https://codeforces.com/api/user.rating?handle=${username}`;
+        const r1 = await fetch(api);
+        const res = await r1.json();
+        if (res.status === "OK") {
+            return res.result;
+        } else {
+            toast(res.comment);
+        }
+    } catch (err) {
+        console.log(err);
+    }
+    return [];
+};
+
 export const getCFParticipatedContestCount = async (username: string | undefined) => {
     let cfParticipatedContestCount = 0;
     if (username) {
         try {
-            const api = `${cf_base_url}/user.status?handle=${username.split(',')[0]}&from=1&count=1000000000`;
-            const r1 = await fetch(api);
-            const res = await r1.json();
-            if (res.status === "OK") {
-                let s = new Set();
-                for (const subs of res.result) {
-                    if (subs.author.participantType !== "CONTESTANT") continue;
-                    s.add(subs.contestId);
-                }
-                cfParticipatedContestCount = s.size;
-            } else {
-                toast(res.comment);
-            }
+            const contests = await getCFContestStatus(username);
+            cfParticipatedContestCount = contests.length;
         } catch (err) {
             toast("Something Went Wrong");
             console.log(err);
