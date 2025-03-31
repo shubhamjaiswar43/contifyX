@@ -149,10 +149,83 @@ const ContestDashboard: React.FC = () => {
         }
         return contests;
     };
+    const computeContestsData = (baseTime: number, baseContest: number, timeGap: number,
+        upcomingCount: number, pastCount: number, platform: 'Codeforces' | 'CodeChef' | 'LeetCode',
+        platformLink: string, contestName: string, contestLink: string, contestLength: string, contests: Array<Contest>) => {
+        const currTime = new Date().getTime();
+        const contestGap = Math.floor((currTime - baseTime) / timeGap);
+        const pushContest = (contestNumber: number, contestTime: number) => {
+            contests.push({
+                'name': contestName.replace('<contestNumber>', `${contestNumber}`),
+                platform,
+                platformLink,
+                'contestLink': contestLink.replace('<contestNumber>', `${contestNumber}`),
+                'length': contestLength,
+                'startTime': new Date(contestTime)
+            });
+        }
+        let nextContest = baseContest + contestGap + 1;
+        for (let i = 0; i < upcomingCount; i++) {
+            const contestTime = baseTime + timeGap * (nextContest - baseContest);
+            pushContest(nextContest, contestTime);
+            nextContest++;
+        }
+        let pastContest = baseContest + contestGap;
+        for (let i = 0; i < pastCount; i++) {
+            const contestTime = baseTime + timeGap * (pastContest - baseContest);
+            pushContest(pastContest, contestTime);
+            pastContest--;
+        }
+    };
+    const getCodechefContests = (): Array<Contest> => {
+        const baseTime = 1710340200000;
+        const baseContest = 125;
+        const timeGap = 7 * 24 * 60 * 60 * 1000;
+        const contests: Array<Contest> = [];
+        computeContestsData(baseTime,
+            baseContest, timeGap, 2, 5, 'CodeChef',
+            'https://codechef.com',
+            'Codechef Starters <contestNumber>',
+            'https://www.codechef.com/START<contestNumber>',
+            getFormattedLength(2 * 60 * 60), contests
+        );
+        return contests;
+    };
+    const getLeetcodeContests = (): Array<Contest> => {
+        const baseTimeWeekly = 1550975400000;
+        const baseContestWeekly = 125;
+        const baseTimeBiweekly = 1709389800000;
+        const baseContestBiweekly = 125;
+        const timeGap = 7 * 24 * 60 * 60 * 1000;
+        const contests: Array<Contest> = [];
+        // for weekly
+        computeContestsData(baseTimeWeekly,
+            baseContestWeekly, timeGap, 2, 4, 'LeetCode',
+            'https://leetcode.com',
+            'Leetcode Weekly Contest <contestNumber>',
+            'https://leetcode.com/contest/weekly-contest-<contestNumber>',
+            getFormattedLength(90 * 60),
+            contests
+        );
+        // for biweekly
+        computeContestsData(baseTimeBiweekly,
+            baseContestBiweekly, 2 * timeGap, 1, 2, 'LeetCode',
+            'https://leetcode.com',
+            'Leetcode Biweekly Contest <contestNumber>',
+            'https://leetcode.com/contest/biweekly-contest-<contestNumber>',
+            getFormattedLength(90 * 60),
+            contests
+        );
+        return contests;
+    };
     const fetchContestData = async () => {
         const contests: Array<Contest> = [];
         const codeforesContests: Array<Contest> = await getCodeforcesContests();
+        const codechefContests: Array<Contest> = getCodechefContests();
+        const leetcodeContests: Array<Contest> = getLeetcodeContests();
         for (const contest of codeforesContests) contests.push(contest);
+        for (const contest of codechefContests) contests.push(contest);
+        for (const contest of leetcodeContests) contests.push(contest);
         contests.sort((a, b) => b.startTime.getTime() - a.startTime.getTime());
         setContestInfo(contests);
     }
@@ -167,7 +240,6 @@ const ContestDashboard: React.FC = () => {
             .filter(contest => {
                 const isUpcomingContest = contest.startTime > now;
                 const isPlatformMatch = platform === 'all' || contest.platform === platform;
-
                 return (contestType === 'upcoming' ? isUpcomingContest : !isUpcomingContest) &&
                     isPlatformMatch;
             });
