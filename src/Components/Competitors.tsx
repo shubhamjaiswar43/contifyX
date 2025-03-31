@@ -4,7 +4,7 @@ import { useTheme } from '../Contexts/ThemeProvider';
 import { Usernames, CompetitorsInfo } from './Interface';
 import CustomTooltip from './CustomTooltip';
 import UsernameInput from './UsernameInput';
-import { FaEdit, FaTrash } from "react-icons/fa";
+import { FaEdit, FaPlus, FaTrash } from "react-icons/fa";
 import { getCFRating, getCCRating, getLCRating, getCFTotalACCount, getLCTotalACCount, getCFParticipatedContestCount, getLCParticipatedContestCount } from './UserData';
 
 const CompetitorsPage: React.FC = () => {
@@ -144,102 +144,122 @@ const CompetitorsPage: React.FC = () => {
     }, [competitors]);
 
     return (
-        <div className={`p-6 ${isDark ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'}`}>
-            <div className='flex justify-between'>
-                <h1 className="text-3xl font-bold mb-6">Competitors Tracking</h1>
-                <UsernameInput element={<p>Add Competitor</p>} onSubmit={handleUsernameSubmit} />
+        <div className={`px-3 sm:px-4 md:px-6 py-4 md:py-6 ${isDark ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'}`}>
+            <div className='flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 md:mb-6'>
+                <h1 className="text-lg sm:text-xl md:text-3xl font-bold mb-2 sm:mb-0">Competitors Tracking</h1>
+                <UsernameInput element={<p className="flex items-center"><FaPlus className="mr-1" /> <span className="hidden sm:inline">Add Competitor</span></p>} onSubmit={handleUsernameSubmit} />
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
                 {/* Competitors List */}
-                <div className={`p-4 rounded-lg shadow-md ${isDark ? 'bg-gray-800' : 'bg-gray-100'} h-[400px] overflow-auto`}>
-                    <h2 className="text-xl font-semibold mb-4">Tracked Competitors</h2>
-                    {competitors.map((competitor, index) => (
-                        <div
-                            key={`${competitor.codeforces}${index}`}
-                            className={`p-3 mb-2 rounded-lg flex justify-between items-center ${isDark ? 'bg-gray-700' : 'bg-gray-200'
+                <div className={`p-3 sm:p-4 rounded-lg shadow-md ${isDark ? 'bg-gray-800' : 'bg-gray-100'} h-[300px] sm:h-[350px] md:h-[400px] overflow-auto`}>
+                    <h2 className="text-sm sm:text-lg md:text-xl font-semibold mb-2 sm:mb-4">Tracked Competitors</h2>
+                    {competitors.length === 0 ? (
+                        <p className="text-center text-gray-500 py-4">No competitors added yet</p>
+                    ) : (
+                        competitors.map((competitor, index) => (
+                            <div
+                                key={`${competitor.codeforces}${index}`}
+                                className={`p-2 sm:p-3 mb-2 rounded-lg flex flex-col sm:flex-row justify-between items-start sm:items-center ${
+                                    isDark ? 'bg-gray-700' : 'bg-gray-200'
                                 }`}
-                        >
-                            <div>
-                                <p className="font-bold">{competitor.codeforces}</p>
-                                <div className="text-sm text-gray-500">
-                                    <span>CF: {competitor.codeforces}</span>
-                                    <span className="mx-2">|</span>
-                                    <span>CC: {competitor.codechef}</span>
-                                    <span className="mx-2">|</span>
-                                    <span>LC: {competitor.leetcode}</span>
+                            >
+                                <div className="w-full sm:w-auto mb-2 sm:mb-0">
+                                    <p className="font-bold text-sm md:text-lg truncate max-w-[200px] sm:max-w-none">{competitor.codeforces}</p>
+                                    <div className="text-xs md:text-sm text-gray-500 flex flex-col sm:flex-row">
+                                        <span className="mr-2">CF: {competitor.codeforces}</span>
+                                        <span className="hidden sm:inline mx-2">|</span>
+                                        <span className="mr-2">CC: {competitor.codechef}</span>
+                                        <span className="hidden sm:inline mx-2">|</span>
+                                        <span>LC: {competitor.leetcode}</span>
+                                    </div>
+                                </div>
+                                <div className='flex sm:scale-90 md:scale-100'>
+                                    <UsernameInput 
+                                        usernames={competitor} 
+                                        element={<div className="flex items-center"><FaEdit className="mr-1" /> <span className="text-xs hidden sm:inline">Edit</span></div>} 
+                                        onSubmit={(usernames: Usernames) => handleEditCompetitor(usernames, index)} 
+                                    />
+                                    <button 
+                                        className={`ml-2 p-2 sm:px-3 sm:py-2 rounded-md ${
+                                            isDark ? 'bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                        } transition-colors duration-200 flex items-center`} 
+                                        onClick={() => handleDeleteCompetitor(index)}
+                                    >
+                                        <FaTrash className="mr-1" />
+                                        <span className="text-xs hidden sm:inline">Delete</span>
+                                    </button>
                                 </div>
                             </div>
-                            <div className='flex'>
-                                <UsernameInput usernames={competitor} element={<FaEdit />} onSubmit={(usernames: Usernames) => handleEditCompetitor(usernames, index)} />
-                                <button className={`px-4 ml-4 py-2 rounded-md ${isDark
-                                    ? 'bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white'
-                                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                                    } transition-colors duration-200 cursor-pointer`} onClick={() => handleDeleteCompetitor(index)}>
-                                    <FaTrash />
-                                </button>
-                            </div>
-                        </div>
-                    ))}
+                        ))
+                    )}
                 </div>
 
-                {/* Platform Ratings Comparison */}
-                <div className={`p-4 rounded-lg shadow-md ${isDark ? 'bg-gray-800' : 'bg-gray-100'}`}>
-                    <h2 className="text-xl font-semibold mb-4">Platform Ratings Comparison</h2>
-                    <ResponsiveContainer width="100%" height={300}>
-                        <BarChart data={ratingData}>
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="platform" />
-                            <YAxis />
-                            <Tooltip content={<CustomTooltip />} />
-                            <Legend />
-                            {
-                                competitors.map((competitor, index) => (
-                                    <Bar key={`barChart${index}`} name={competitor.codeforces} dataKey={`values[${index}]`} fill="#8884d8" />
-                                ))
-                            }
-                        </BarChart>
-                    </ResponsiveContainer>
+                {/* Charts Section - Wrapped in a container for better small screen display */}
+                <div className="space-y-3 sm:space-y-4 md:space-y-6 col-span-1 lg:col-span-1">
+                    {/* Platform Ratings Comparison */}
+                    <div className={`p-3 sm:p-4 rounded-lg shadow-md ${isDark ? 'bg-gray-800' : 'bg-gray-100'}`}>
+                        <h2 className="text-sm sm:text-md md:text-lg lg:text-xl font-semibold mb-2 sm:mb-3 md:mb-4">Platform Ratings</h2>
+                        {competitors.length === 0 ? (
+                            <p className="text-center text-gray-500 py-4">Add competitors to see ratings</p>
+                        ) : (
+                            <ResponsiveContainer width="100%" height={250}>
+                                <BarChart data={ratingData}>
+                                    <CartesianGrid strokeDasharray="3 3" />
+                                    <XAxis dataKey="platform" fontSize={12} />
+                                    <YAxis fontSize={12} />
+                                    <Tooltip content={<CustomTooltip />} />
+                                    <Legend wrapperStyle={{ fontSize: '12px' }} />
+                                    {competitors.map((competitor, index) => (
+                                        <Bar key={`barChart${index}`} name={competitor.codeforces} dataKey={`values[${index}]`} fill={`hsl(${(index * 30) % 360}, 70%, 60%)`} />
+                                    ))}
+                                </BarChart>
+                            </ResponsiveContainer>
+                        )}
+                    </div>
+
+                    {/* Platform Problem Solved Comparison */}
+                    <div className={`p-3 sm:p-4 rounded-lg shadow-md ${isDark ? 'bg-gray-800' : 'bg-gray-100'}`}>
+                        <h2 className="text-sm sm:text-md md:text-lg lg:text-xl font-semibold mb-2 sm:mb-3 md:mb-4">Problems Solved</h2>
+                        {competitors.length === 0 ? (
+                            <p className="text-center text-gray-500 py-4">Add competitors to see problems solved</p>
+                        ) : (
+                            <ResponsiveContainer width="100%" height={250}>
+                                <BarChart data={problemSolvedData}>
+                                    <CartesianGrid strokeDasharray="3 3" />
+                                    <XAxis dataKey="platform" fontSize={12} />
+                                    <YAxis fontSize={12} />
+                                    <Tooltip content={<CustomTooltip />} />
+                                    <Legend wrapperStyle={{ fontSize: '12px' }} />
+                                    {competitors.map((competitor, index) => (
+                                        <Bar key={`barChart${index}`} name={competitor.codeforces} dataKey={`values[${index}]`} fill={`hsl(${(index * 30) % 360}, 70%, 60%)`} />
+                                    ))}
+                                </BarChart>
+                            </ResponsiveContainer>
+                        )}
+                    </div>
+
+                    {/* Platform Contest Participated Comparison */}
+                    <div className={`p-3 sm:p-4 rounded-lg shadow-md ${isDark ? 'bg-gray-800' : 'bg-gray-100'}`}>
+                        <h2 className="text-sm sm:text-md md:text-lg lg:text-xl font-semibold mb-2 sm:mb-3 md:mb-4">Contests Participated</h2>
+                        {competitors.length === 0 ? (
+                            <p className="text-center text-gray-500 py-4">Add competitors to see contest participation</p>
+                        ) : (
+                            <ResponsiveContainer width="100%" height={250}>
+                                <BarChart data={contestParticipatedData}>
+                                    <CartesianGrid strokeDasharray="3 3" />
+                                    <XAxis dataKey="platform" fontSize={12} />
+                                    <YAxis fontSize={12} />
+                                    <Tooltip content={<CustomTooltip />} />
+                                    <Legend wrapperStyle={{ fontSize: '12px' }} />
+                                    {competitors.map((competitor, index) => (
+                                        <Bar key={`barChart${index}`} name={competitor.codeforces} dataKey={`values[${index}]`} fill={`hsl(${(index * 30) % 360}, 70%, 60%)`} />
+                                    ))}
+                                </BarChart>
+                            </ResponsiveContainer>
+                        )}
+                    </div>
                 </div>
-
-                {/* Platform Problem Solved Comparison */}
-                <div className={`p-4 rounded-lg shadow-md ${isDark ? 'bg-gray-800' : 'bg-gray-100'}`}>
-                    <h2 className="text-xl font-semibold mb-4">Platform Problem Solved Comparison</h2>
-                    <ResponsiveContainer width="100%" height={300}>
-                        <BarChart data={problemSolvedData}>
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="platform" />
-                            <YAxis />
-                            <Tooltip content={<CustomTooltip />} />
-                            <Legend />
-                            {
-                                competitors.map((competitor, index) => (
-                                    <Bar key={`barChart${index}`} name={competitor.codeforces} dataKey={`values[${index}]`} fill="#8884d8" />
-                                ))
-                            }
-                        </BarChart>
-                    </ResponsiveContainer>
-                </div>
-
-                {/* Platform Contest Participated Comparison */}
-                <div className={`p-4 rounded-lg shadow-md ${isDark ? 'bg-gray-800' : 'bg-gray-100'}`}>
-                    <h2 className="text-xl font-semibold mb-4">Platform Contest Participated Comparison</h2>
-                    <ResponsiveContainer width="100%" height={300}>
-                        <BarChart data={contestParticipatedData}>
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="platform" />
-                            <YAxis />
-                            <Tooltip content={<CustomTooltip />} />
-                            <Legend />
-                            {
-                                competitors.map((competitor, index) => (
-                                    <Bar key={`barChart${index}`} name={competitor.codeforces} dataKey={`values[${index}]`} fill="#8884d8" />
-                                ))
-                            }
-                        </BarChart>
-                    </ResponsiveContainer>
-                </div>
-
-
             </div>
         </div>
     );

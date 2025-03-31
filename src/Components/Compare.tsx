@@ -87,10 +87,6 @@ const fetchUserStats = async (username: string, platform: string): Promise<UserS
         }
         acceptedMonths.reverse();
 
-        // for (let rating = 800; rating <= 2500; rating += 100) {
-        //     ratingProblems[rating] = 0;
-        // }
-
         for (const subs of submissions) {
             if (subs.verdict !== "OK") continue;
 
@@ -232,16 +228,23 @@ const CompetitorComparison: React.FC = () => {
         switch (performanceVisualization) {
             case 'monthlyProblems':
                 return (
-                    <ResponsiveContainer width="100%" height="100%">
+                    <ResponsiveContainer width="100%" height={300}>
                         <LineChart
                             data={user1Stats.monthlyProblemsSolved.map((item, index) => ({
                                 month: item.month,
                                 [username1]: item.problems,
                                 [username2]: user2Stats.monthlyProblemsSolved[index].problems
                             }))}
+                            className='mx-[-20px] sm:mx-0'
                         >
                             <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#333' : '#e0e0e0'} />
-                            <XAxis dataKey="month" />
+                            <XAxis 
+                                dataKey="month" 
+                                tick={{ fontSize: 10 }}
+                                angle={-45}
+                                textAnchor="end"
+                                height={60}
+                            />
                             <YAxis />
                             <Tooltip
                                 contentStyle={{
@@ -267,11 +270,12 @@ const CompetitorComparison: React.FC = () => {
                 );
             case 'contestRatings':
                 return (
-                    <ResponsiveContainer width="100%" height="100%">
+                    <ResponsiveContainer width="100%" height={300}>
                         <LineChart
+                        className='mx-[-20px] sm:mx-0'
                             onClick={(data) => {
                                 const contestLink = data?.activePayload ? data.activePayload[0]?.payload?.contestLink : "";
-                                window.open(contestLink, '_blank');
+                                if (contestLink) window.open(contestLink, '_blank');
                             }}
                             data={user1Stats.contestRatings.map((contest, index) => ({
                                 contestName: contest.contestName,
@@ -281,7 +285,13 @@ const CompetitorComparison: React.FC = () => {
                             }))}
                         >
                             <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#333' : '#e0e0e0'} />
-                            <XAxis dataKey="contestName" />
+                            <XAxis 
+                                dataKey="contestName" 
+                                tick={{ fontSize: 10 }} 
+                                angle={-45}
+                                textAnchor="end"
+                                height={80}
+                            />
                             <YAxis />
                             <Tooltip
                                 content={({ active, payload, label }) => {
@@ -290,9 +300,9 @@ const CompetitorComparison: React.FC = () => {
                                         const contest2 = user2Stats.contestRatings.find(c => c.contestName === label);
                                         return (
                                             <div className={`p-4 rounded ${isDark ? 'bg-gray-800' : 'bg-white'} shadow-lg`}>
-                                                <h4 className="font-bold mb-2">{label}</h4>
-                                                <div>{username1}: {contest1?.ratingBefore} → {contest1?.ratingAfter}</div>
-                                                <div>{username2}: {contest2?.ratingBefore} → {contest2?.ratingAfter}</div>
+                                                <h4 className="font-bold mb-2 text-sm">{label}</h4>
+                                                <div className="text-sm">{username1}: {contest1?.ratingBefore} → {contest1?.ratingAfter}</div>
+                                                <div className="text-sm">{username2}: {contest2?.ratingBefore} → {contest2?.ratingAfter}</div>
                                             </div>
                                         );
                                     }
@@ -309,7 +319,7 @@ const CompetitorComparison: React.FC = () => {
                                 dataKey={username1}
                                 stroke="#8884d8"
                                 activeDot={{
-                                    r: 8,
+                                    r: 6,
                                 }}
                             />
                             <Line
@@ -317,7 +327,7 @@ const CompetitorComparison: React.FC = () => {
                                 dataKey={username2}
                                 stroke="#82ca9d"
                                 activeDot={{
-                                    r: 8,
+                                    r: 6,
                                 }}
                             />
                         </LineChart>
@@ -332,9 +342,9 @@ const CompetitorComparison: React.FC = () => {
         if (!user1Stats || !user2Stats) return null;
 
         return (
-
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height={300}>
                 <BarChart
+                    className='mx-[-20px] sm:mx-0'
                     onClick={(data) => {
                         const rating = data?.activePayload ? data.activePayload[0].payload.ratingRange : 800;
                         const url = `https://codeforces.com/problemset?tags=${rating}-${rating}`;
@@ -376,29 +386,29 @@ const CompetitorComparison: React.FC = () => {
         if (!user1Stats || !user2Stats) return null;
 
         return (
-            <div className="grid md:grid-cols-2 gap-4 w-full h-full">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full">
                 {[user1Stats, user2Stats].map((userStats, index) => {
                     const username = index === 0 ? username1 : username2;
                     return (
                         <div
                             key={username}
-                            className={`p-4 rounded-lg shadow-md ${isDark ? 'bg-gray-800' : 'bg-gray-100'} h-full`}
+                            className={`p-4 rounded-lg shadow-md ${isDark ? 'bg-gray-800' : 'bg-gray-100'}`}
                         >
                             <h3 className="text-xl font-bold mb-4 flex items-center">
                                 <TrendingUp className="mr-2" />
-                                {username} Advanced Stats
+                                {username} Stats
                             </h3>
                             <div className="space-y-4">
                                 <div className="flex justify-between items-center">
-                                    <span className="text-gray-600">Total Problems Solved</span>
+                                    <span className="text-gray-600 dark:text-gray-300">Total Problems Solved</span>
                                     <strong>{userStats.totalProblems}</strong>
                                 </div>
                                 <div className="flex justify-between items-center">
-                                    <span className="text-gray-600">Current Rating</span>
+                                    <span className="text-gray-600 dark:text-gray-300">Current Rating</span>
                                     <strong>{userStats.currentRating}</strong>
                                 </div>
                                 <div className="flex justify-between items-center">
-                                    <span className="text-gray-600">Highest Rating</span>
+                                    <span className="text-gray-600 dark:text-gray-300">Highest Rating</span>
                                     <strong>{userStats.highestRating}</strong>
                                 </div>
                             </div>
@@ -409,30 +419,41 @@ const CompetitorComparison: React.FC = () => {
         );
     };
 
+    const renderEmptyState = () => {
+        return (
+            <div className="flex flex-col items-center justify-center h-64 p-4">
+                <div className={`text-xl ${isDark ? 'text-gray-300' : 'text-gray-600'} text-center`}>
+                    Enter usernames and click "Compare" to see statistics
+                </div>
+            </div>
+        );
+    };
+
     return (
-        <div className={`w-full overflow-hidden h-screen flex flex-col p-6 ${isDark ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'}`}>
-            {/* Header with input and compare button - same as before */}
-            <div className="flex justify-between items-center mb-4">
-                <h1 className="text-3xl font-bold">Competitor Comparison</h1>
-                <div className="flex items-center space-x-4">
+        <div className={`w-full flex flex-col p-2 sm:p-4 md:p-6 overflow-y-auto min-h-screen ${isDark ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'}`}>
+            {/* Header with input and compare button */}
+            <div className="flex flex-col space-y-4 mb-6">
+                <h1 className="text-2xl md:text-3xl font-bold text-center">Competitor Comparison</h1>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 w-full max-w-4xl mx-auto">
                     <input
                         type="text"
                         placeholder="Username 1"
                         value={username1}
                         onChange={(e) => setUsername1(e.target.value)}
-                        className={`p-2 rounded-lg w-40 ${isDark ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-900'}`}
+                        className={`p-2 rounded-lg w-full ${isDark ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-900'}`}
                     />
                     <input
                         type="text"
                         placeholder="Username 2"
                         value={username2}
                         onChange={(e) => setUsername2(e.target.value)}
-                        className={`p-2 rounded-lg w-40 ${isDark ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-900'}`}
+                        className={`p-2 rounded-lg w-full ${isDark ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-900'}`}
                     />
                     <select
                         value={platform}
                         onChange={(e) => setPlatform(e.target.value)}
-                        className={`p-2 rounded-lg w-40 ${isDark ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-900'}`}
+                        className={`p-2 rounded-lg w-full ${isDark ? 'bg-gray-800 text-white' : 'bg-gray-100 text-gray-900'}`}
                     >
                         {platforms.map((p) => (
                             <option key={p.value} value={p.value}>
@@ -442,14 +463,12 @@ const CompetitorComparison: React.FC = () => {
                     </select>
                     <button
                         onClick={handleCompare}
-                        className={`p-2 rounded-lg w-24 cursor-pointer flex justify-center ${isDark
+                        className={`p-2 rounded-lg cursor-pointer flex justify-center items-center ${isDark
                             ? 'bg-purple-700 text-white hover:bg-purple-600'
                             : 'bg-purple-500 text-white hover:bg-purple-600'
                             }`}
                     >
-                        {
-                            isLoading ? <Loader className='animate-spin' /> : 'Compare'
-                        }
+                        {isLoading ? <Loader className='animate-spin' /> : 'Compare'}
                     </button>
                 </div>
             </div>
@@ -457,7 +476,7 @@ const CompetitorComparison: React.FC = () => {
             {/* Tabs and Content */}
             <div className="flex-grow flex flex-col">
                 {/* Tabs */}
-                <div className="flex border-b border-gray-600 mb-4">
+                <div className="flex overflow-x-auto scrollbar-hide border-b border-gray-600 mb-4">
                     {[
                         { value: 'performance', icon: Award, label: 'Performance' },
                         { value: 'problemRatings', icon: Star, label: 'Problem Ratings' },
@@ -467,64 +486,72 @@ const CompetitorComparison: React.FC = () => {
                             key={tab.value}
                             onClick={() => setActiveTab(tab.value)}
                             className={`
-                                flex items-center px-4 py-2 mr-2 cursor-pointer 
+                                flex items-center px-3 py-2 mr-2 whitespace-nowrap
                                 ${activeTab === tab.value
                                     ? 'border-b-2 border-purple-500 text-purple-500'
                                     : 'text-gray-500 hover:text-gray-300'}
                             `}
                         >
-                            <tab.icon className="mr-2" size={20} />
-                            {tab.label}
+                            <tab.icon className="mr-1 sm:mr-2" size={16} />
+                            <span className="text-sm sm:text-base">{tab.label}</span>
                         </button>
                     ))}
                 </div>
 
-                {/* Performance Tab - with Visualization Dropdown */}
-                {activeTab === 'performance' && (
-                    <div className="flex flex-col h-full">
-                        <div className="flex justify-end mb-4">
-                            <div className="relative">
-                                <select
-                                    value={performanceVisualization}
-                                    onChange={(e) => setPerformanceVisualization(e.target.value)}
-                                    className={`
-                                        appearance-none p-2 pr-8 rounded-lg
-                                        ${isDark
-                                            ? 'bg-gray-800 text-white'
-                                            : 'bg-gray-100 text-gray-900'
-                                        }
-                                    `}
-                                >
-                                    {performanceVisualizations.map((vis) => (
-                                        <option key={vis.value} value={vis.value}>
-                                            {vis.label}
-                                        </option>
-                                    ))}
-                                </select>
-                                <ChevronDown
-                                    className="absolute right-2 top-1/2 transform -translate-y-1/2 pointer-events-none"
-                                />
-                            </div>
-                        </div>
-                        <div className="flex-grow">
-                            {renderPerformanceVisualization()}
-                        </div>
-                    </div>
-                )}
+                {/* Content area */}
+                <div className="flex-grow flex flex-col space-y-4 mb-4">
+                    {!user1Stats || !user2Stats ? renderEmptyState() : (
+                        <>
+                            {/* Performance Tab - with Visualization Dropdown */}
+                            {activeTab === 'performance' && (
+                                <div className="flex flex-col">
+                                    <div className="flex justify-end mb-2">
+                                        <div className="relative z-10">
+                                            <select
+                                                value={performanceVisualization}
+                                                onChange={(e) => setPerformanceVisualization(e.target.value)}
+                                                className={`
+                                                    appearance-none p-2 pr-8 rounded-lg text-sm
+                                                    ${isDark
+                                                        ? 'bg-gray-800 text-white'
+                                                        : 'bg-gray-100 text-gray-900'
+                                                    }
+                                                `}
+                                            >
+                                                {performanceVisualizations.map((vis) => (
+                                                    <option key={vis.value} value={vis.value}>
+                                                        {vis.label}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                            <ChevronDown
+                                                className="absolute right-2 top-1/2 transform -translate-y-1/2 pointer-events-none"
+                                                size={16}
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="w-full">
+                                        {renderPerformanceVisualization()}
+                                    </div>
+                                </div>
+                            )}
 
-                {/* Problem Ratings Tab */}
-                {activeTab === 'problemRatings' && (
-                    <div className="flex-grow">
-                        {renderProblemSolvedByRating()}
-                    </div>
-                )}
+                            {/* Problem Ratings Tab */}
+                            {activeTab === 'problemRatings' && (
+                                <div className="w-full">
+                                    {renderProblemSolvedByRating()}
+                                </div>
+                            )}
 
-                {/* Additional Stats Tab */}
-                {activeTab === 'additionalStats' && (
-                    <div className="flex-grow">
-                        {renderAdditionalStats()}
-                    </div>
-                )}
+                            {/* Additional Stats Tab */}
+                            {activeTab === 'additionalStats' && (
+                                <div className="w-full">
+                                    {renderAdditionalStats()}
+                                </div>
+                            )}
+                        </>
+                    )}
+                </div>
             </div>
         </div>
     );

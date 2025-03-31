@@ -7,6 +7,7 @@ import { toast } from 'react-toastify';
 import { Usernames, NameValue, KeyStats, TimelyProblemSolvedData, ProgressData } from './Interface';
 import { getCFRating, getCCRating, getLCRating, getProblemSolvedCount, getLCTotalProblemSolved, getCFTotalACCount, getLCTotalACCount, getCCTotalACCount, getCFParticipatedContestCount, getLCParticipatedContestCount } from './UserData';
 import CustomTooltip from './CustomTooltip';
+import { FaPlus, FaEdit } from 'react-icons/fa';
 
 const Analysis: React.FC = () => {
     const { theme } = useTheme();
@@ -37,7 +38,9 @@ const Analysis: React.FC = () => {
         setTimelyProblemSolvedData(psd);
     };
     useEffect(() => {
-        fetchTimelyProblemSolvedData();
+        if (usernames) {
+            fetchTimelyProblemSolvedData();
+        }
     }, [usernames]);
 
     // rating info
@@ -61,7 +64,9 @@ const Analysis: React.FC = () => {
         setProgressData(rating);
     };
     useEffect(() => {
-        fetchProgressData();
+        if (usernames) {
+            fetchProgressData();
+        }
     }, [usernames]);
 
     // lc difficulty solved
@@ -71,12 +76,16 @@ const Analysis: React.FC = () => {
         { name: 'Hard', value: 20 },
     ]);
     const fetchNameValue = async () => {
-        let dbd: Array<NameValue> = [];
-        dbd = await getLCTotalProblemSolved(usernames?.leetcode);
-        setNameValueData(dbd);
+        if (usernames?.leetcode) {
+            let dbd: Array<NameValue> = [];
+            dbd = await getLCTotalProblemSolved(usernames.leetcode);
+            setNameValueData(dbd);
+        }
     };
     useEffect(() => {
-        fetchNameValue();
+        if (usernames) {
+            fetchNameValue();
+        }
     }, [usernames]);
 
     // key stats
@@ -87,10 +96,6 @@ const Analysis: React.FC = () => {
                 platform: "Codeforces",
                 stats: [{ name: 'problemSolved', value: 0 }, { name: "contestParticipated", value: 0 }]
             },
-            // {
-            //     platform: "Codechef",
-            //     stats: [{ name: 'problemSolved', value: 0 }, { name: "contestParticipated", value: 0 }]
-            // },
             {
                 platform: "Leetcode",
                 stats: [{ name: 'problemSolved', value: 0 }, { name: "contestParticipated", value: 0 }]
@@ -104,7 +109,9 @@ const Analysis: React.FC = () => {
     };
 
     useEffect(() => {
-        fetchKeyStats();
+        if (usernames) {
+            fetchKeyStats();
+        }
     }, [usernames]);
 
     // usernames input and storing in cookies
@@ -132,7 +139,7 @@ const Analysis: React.FC = () => {
     useEffect(() => {
         if (usernames === null) {
             if (!getUsernames()) {
-                toast("Please Enter Username Details");
+                toast("Please Add Username Details");
             }
         }
     }, []);
@@ -140,145 +147,109 @@ const Analysis: React.FC = () => {
     const COLORS = ['#00b8a3', '#ffc01e', '#ff3254'];
 
     return (
-        <div className={`p-6 ${isDark ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'}`}>
-            <div className='flex justify-between'>
-                <h1 className="text-3xl font-bold mb-6">Performance Analysis</h1>
-                <UsernameInput usernames={usernames} onSubmit={handleUsernameSubmit} />
+        <div className={`px-3 py-4 sm:p-6 ${isDark ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'}`}>
+            <div className='flex justify-between items-center flex-wrap mb-4'>
+                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-2">Performance Analysis</h1>
+                <UsernameInput element={<div className='pb-1'>{usernames ? <FaEdit /> : <FaPlus />}</div>} usernames={usernames} onSubmit={handleUsernameSubmit} />
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                 {/* Problem Solved Over Time */}
-                <div className={`p-4 rounded-lg shadow-md ${isDark ? 'bg-gray-800' : 'bg-gray-100'}`}>
-                    <h2 className="text-xl font-semibold mb-4">CF Problems Solved Monthly</h2>
-                    <ResponsiveContainer width="100%" height={300}>
-                        <LineChart data={timelyProblemSolvedData}>
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="time" />
-                            <YAxis />
-                            <Tooltip />
-                            <Legend />
-                            <Line type="monotone" dataKey="problems" stroke="#8884d8" />
-                        </LineChart>
-                    </ResponsiveContainer>
+                <div className={`p-3 sm:p-4 rounded-lg shadow-md ${isDark ? 'bg-gray-800' : 'bg-gray-100'}`}>
+                    <h2 className="text-md sm:text-lg lg:text-xl font-semibold mb-2 sm:mb-4">CF Problems Solved Monthly</h2>
+                    <div className="h-64 sm:h-72 md:h-80 lg:h-72 xl:h-80">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <LineChart data={timelyProblemSolvedData} margin={{ top: 5, right: 5, left: -15, bottom: 5 }}>
+                                <CartesianGrid strokeDasharray="3 3" />
+                                <XAxis dataKey="time" tick={{ fontSize: 10 }} tickMargin={5} />
+                                <YAxis tick={{ fontSize: 10 }} />
+                                <Tooltip />
+                                <Legend wrapperStyle={{ fontSize: '12px' }} />
+                                <Line type="monotone" dataKey="problems" stroke="#8884d8" />
+                            </LineChart>
+                        </ResponsiveContainer>
+                    </div>
                 </div>
 
                 {/* Rating Progression */}
-                {/* <div className={`p-4 rounded-lg shadow-md ${isDark ? 'bg-gray-800' : 'bg-gray-200'}`}>
-                    <h2 className="text-xl font-semibold mb-4">Rating Across Platforms</h2>
-                    <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={ratingProgressData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="platform" />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="rating" fill="#8884d8" />
-                    </BarChart>
-                    </ResponsiveContainer>
-                    </div> */}
-                <div className={`p-4 rounded-lg shadow-md ${isDark ? 'bg-gray-800' : 'bg-gray-200'}`}>
-                    <h2 className="text-xl font-semibold mb-4">Rating and Problem Solved Across Platforms</h2>
-                    <ResponsiveContainer width="100%" height={300}>
-                        <BarChart
-                            data={ProgressData}
-                            margin={{
-                                top: 20,
-                                right: 30,
-                                left: 20,
-                                bottom: 5,
-                            }}
-                        >
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="platform" />
-                            <YAxis yAxisId="left" label={{ value: 'Rating/Problems Solved', angle: -90, position: 'insideLeft' }} />
-                            {/* <YAxis yAxisId="right" orientation="right" label={{ value: 'Rating', angle: 90, position: 'insideRight' }} /> */}
-                            <Tooltip content={<CustomTooltip />} />
-                            <Tooltip
-                                formatter={(value, name, _) => {
-                                    return [`${value}`, name];
-                                }}
-                                labelClassName="font-bold"
-                            />
-                            <Legend />
-                            <Bar yAxisId="left" dataKey="problemSolved" fill="#5ef85e" name="Problems Solved" />
-                            <Bar yAxisId="left" dataKey="rating" fill="#ff5a74" name="Rating" />
-                        </BarChart>
-                    </ResponsiveContainer>
+                <div className={`p-3 sm:p-4 rounded-lg shadow-md ${isDark ? 'bg-gray-800' : 'bg-gray-200'}`}>
+                    <h2 className="text-md sm:text-lg lg:text-xl font-semibold mb-2 sm:mb-4">Rating and Problem Solved</h2>
+                    <div className="h-64 sm:h-72 md:h-80 lg:h-72 xl:h-80">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <BarChart
+                                data={ProgressData}
+                                margin={{ top: 5, right: 10, left: 0, bottom: 5 }}
+                            >
+                                <CartesianGrid strokeDasharray="3 3" />
+                                <XAxis dataKey="platform" tick={{ fontSize: 10 }} />
+                                <YAxis 
+                                    yAxisId="left" 
+                                    tick={{ fontSize: 10 }} 
+                                    label={{ 
+                                        value: 'Rating/Problems', 
+                                        angle: -90, 
+                                        position: 'insideLeft',
+                                        style: { fontSize: '10px', textAnchor: 'middle' },
+                                        dx: -10
+                                    }} 
+                                />
+                                <Tooltip content={<CustomTooltip />} />
+                                <Legend wrapperStyle={{ fontSize: '12px' }} />
+                                <Bar yAxisId="left" dataKey="problemSolved" fill="#5ef85e" name="Problems" />
+                                <Bar yAxisId="left" dataKey="rating" fill="#ff5a74" name="Rating" />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
                 </div>
 
                 {/* Difficulty Breakdown */}
-                <div className={`p-4 rounded-lg shadow-md ${isDark ? 'bg-gray-800' : 'bg-gray-100'}`}>
-                    <h2 className="text-xl font-semibold mb-4">LC Problem Difficulty Solved</h2>
-                    <ResponsiveContainer width="100%" height={300}>
-                        <PieChart>
-                            <Pie
-                                data={NameValueData}
-                                cx="50%"
-                                cy="50%"
-                                labelLine={false}
-                                outerRadius={80}
-                                fill="#8884d8"
-                                dataKey="value"
-                            >
-                                {NameValueData.map((_, index) => (
-                                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                ))}
-                            </Pie>
-                            <Tooltip />
-                            <Legend />
-                        </PieChart>
-                    </ResponsiveContainer>
+                <div className={`p-3 sm:p-4 rounded-lg shadow-md ${isDark ? 'bg-gray-800' : 'bg-gray-100'}`}>
+                    <h2 className="text-md sm:text-lg lg:text-xl font-semibold mb-2 sm:mb-4">LC Problem Difficulty</h2>
+                    <div className="h-64 sm:h-72 md:h-80 lg:h-72 xl:h-80">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <PieChart margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
+                                <Pie
+                                    data={NameValueData}
+                                    cx="50%"
+                                    cy="50%"
+                                    labelLine={false}
+                                    outerRadius={70}
+                                    fill="#8884d8"
+                                    dataKey="value"
+                                >
+                                    {NameValueData.map((_, index) => (
+                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                    ))}
+                                </Pie>
+                                <Tooltip formatter={(value, name) => [`${value}`, name]} />
+                                <Legend wrapperStyle={{ fontSize: '12px' }} />
+                            </PieChart>
+                        </ResponsiveContainer>
+                    </div>
                 </div>
 
                 {/* Key Statistics */}
-                <div className={`p-4 rounded-lg shadow-md ${isDark ? 'bg-gray-800' : 'bg-gray-100'}`}>
-                    <h2 className="text-xl font-semibold mb-4">Key Statistics</h2>
-                    <div className='grid grid-rows-2 gap-4'>
-                        {
-                            keyStats.map((keyStat, key) => {
-                                return (
-                                    <div key={`parentKeyStatDiv${key}`}>
-                                        <p className='text-2xl mb-2'>{keyStat.platform}</p>
-                                        <div className={`grid grid-cols-${keyStat.stats.length} gap-4`}>
-                                            {
-                                                keyStat.stats.map((stat, key) => {
-                                                    return (
-                                                        <div key={`childKeyStatDiv${key}`}>
-                                                            <p className="text-gray-400">{stat.name}</p>
-                                                            <p className="text-2xl font-bold">{stat.value}</p>
-                                                        </div>
-                                                    )
-                                                })
-                                            }
-                                        </div>
+                <div className={`p-3 sm:p-4 rounded-lg shadow-md ${isDark ? 'bg-gray-800' : 'bg-gray-100'}`}>
+                    <h2 className="text-md sm:text-lg lg:text-xl font-semibold mb-2 sm:mb-4">Key Statistics</h2>
+                    <div className="h-64 sm:h-72 md:h-80 lg:h-72 xl:h-80 overflow-y-auto">
+                        <div className='grid grid-cols-1 gap-4'>
+                            {keyStats.map((keyStat, key) => (
+                                <div key={`parentKeyStatDiv${key}`} className="mb-4">
+                                    <p className='text-lg sm:text-xl lg:text-2xl mb-2'>{keyStat.platform}</p>
+                                    <div className="grid grid-cols-2 gap-2 sm:gap-4">
+                                        {keyStat.stats.map((stat, idx) => (
+                                            <div key={`childKeyStatDiv${idx}`} className="bg-opacity-20 bg-gray-500 p-3 rounded-lg">
+                                                <p className="text-xs sm:text-sm lg:text-base text-gray-400">
+                                                    {stat.name === "problemSolved" 
+                                                        ? "Problems Solved" 
+                                                        : "Contests"}
+                                                </p>
+                                                <p className="text-xl sm:text-2xl font-bold">{stat.value}</p>
+                                            </div>
+                                        ))}
                                     </div>
-                                )
-                            })
-                        }
-                        {/* <div>
-                            <p className='text-2xl mb-2'>Codeforces</p>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <p className="text-gray-500">Total Problems Solved</p>
-                                    <p className="text-2xl font-bold">235</p>
                                 </div>
-                                <div>
-                                    <p className="text-gray-500">Contests Participated</p>
-                                    <p className="text-2xl font-bold">42</p>
-                                </div>
-                            </div>
+                            ))}
                         </div>
-                        <div>
-                            <p className='text-2xl mb-2'>Leetcode</p>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <p className="text-gray-500">Total Problems Solved</p>
-                                    <p className="text-2xl font-bold">235</p>
-                                </div>
-                                <div>
-                                    <p className="text-gray-500">Contests Participated</p>
-                                    <p className="text-2xl font-bold">42</p>
-                                </div>
-                            </div>
-                        </div> */}
                     </div>
                 </div>
             </div>
