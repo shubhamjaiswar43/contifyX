@@ -41,7 +41,6 @@ export const getCCRating = async (username: string | undefined) => {
         if (res.success) {
             return res.currentRating;
         }
-        console.log(res);
     } catch (err) {
         toast('Something Went Wrong!!');
         console.log(err);

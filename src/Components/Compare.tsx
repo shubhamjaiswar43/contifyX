@@ -160,15 +160,12 @@ const CompetitorComparison: React.FC = () => {
     ];
 
     const combineContestStats = (stats1: UserStats, stats2: UserStats) => {
-        console.log(stats1.contestRatings);
-        console.log(stats2.contestRatings);
         let idx1 = stats1.contestRatings.length - 1;
         let idx2 = stats2.contestRatings.length - 1;
         const cr1: Array<ContestRating> = [];
         const cr2: Array<ContestRating> = [];
         let lastRating1 = stats1.currentRating;
         let lastRating2 = stats2.currentRating;
-        // console.log(stats1.contestRatings, stats2.contestRatings);
         while (idx1 >= 0 || idx2 >= 0) {
             let c1 = 1, c2 = 0;
             if (idx1 >= 0 && idx2 >= 0) {
@@ -178,7 +175,6 @@ const CompetitorComparison: React.FC = () => {
                 c1--;
                 c2++;
             }
-            // console.log(c1, c2);
             if (c1 === c2) {
                 const cn1 = stats1.contestRatings[idx1].contestName;
                 const cn2 = stats2.contestRatings[idx2].contestName;
@@ -314,18 +310,7 @@ const CompetitorComparison: React.FC = () => {
                                 stroke="#8884d8"
                                 activeDot={{
                                     r: 8,
-                                    // onClick: (data: any) => {
-                                    //     console.log('inActiveDot', data);
-                                    // }
                                 }}
-                            // dot={{
-                            //     r: 6,
-                            //     onClick: (data: any) => {
-                            //         console.log('inDot', data);
-                            //         const contestLink = data.payload.contestLink;
-                            //         window.open(contestLink, '_blank');
-                            //     }
-                            // }}
                             />
                             <Line
                                 type="monotone"
@@ -333,9 +318,6 @@ const CompetitorComparison: React.FC = () => {
                                 stroke="#82ca9d"
                                 activeDot={{
                                     r: 8,
-                                    // onClick: (data: any) => {
-                                    //     console.log('inActiveDot', data);
-                                    // }
                                 }}
                             />
                         </LineChart>
